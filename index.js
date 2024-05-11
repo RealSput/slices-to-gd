@@ -1,6 +1,6 @@
 require('@g-js-api/g.js');
 let slices = require('./lines.json');
-let offset = 200 * 3;
+let offset = 10 * 3;
 // x_pos, y_pos, x_scale, rot
 // obj id 507
 let dot = unknown_g();
@@ -27,10 +27,11 @@ slices.forEach((lines, i) => {
 			LINKED_GROUP: i + 1,
 			COLOR: color(2),
 			HVS_ENABLED: true,
+			EDITOR_LAYER_1: i,
 			HVS: `0a1a${100 / (slices.length - i)}a0a0`,
 			GROUPS: other_g
 		});
 	});
-	other_g.follow(dot, 1 / (i - slices.length) * 15)
+	other_g.follow(dot, 1 / (slices.length - i) * 10)
 });
 $.liveEditor({ info: true });
