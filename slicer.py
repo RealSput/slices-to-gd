@@ -3,13 +3,15 @@ import bpy
 import math
 import mathutils
 
+# config start
+filename = "" # put JSON output file here
+slices = 50 # define how many times to slice mesh here
 sel_obj = bpy.context.active_object # currently selected object = mesh to slice
+# config end
 
 bpy.ops.object.select_all(action='DESELECT')
 
 lines = []
-
-slices = 25 # define how many times to slice mesh here
 
 def get_deepest_y_difference(obj):
     mesh = obj.data
@@ -18,7 +20,6 @@ def get_deepest_y_difference(obj):
     least_deepest_y = max(vertices, key=lambda v: v.y).y
     difference = least_deepest_y - deepest_y
     return difference, deepest_y, least_deepest_y
-
 
 for obj in bpy.data.objects:
     if obj.name.startswith("Line"):
@@ -30,21 +31,20 @@ diff, dy, ldy = get_deepest_y_difference(sel_obj)
 slope = (diff / slices)
 
 tc = 0
-print(diff, dy, ldy, slope)
 y_coordinate = dy
 
 def find_intersection_with_grid(vertex1, vertex2, y_coordinate):
     if vertex1.x == vertex2.x:
         return mathutils.Vector((vertex1.x, y_coordinate, 0))
     if vertex1.y == vertex2.y:
-        return None  
-    m = (vertex2.y - vertex1.y) / (vertex2.x - vertex1.x)  
-    b = vertex1.y - m * vertex1.x  
+        return None
+    m = (vertex2.y - vertex1.y) / (vertex2.x - vertex1.x)
+    b = vertex1.y - m * vertex1.x
     x_intersect = (y_coordinate - b) / m
     if min(vertex1.x, vertex2.x) <= x_intersect <= max(vertex1.x, vertex2.x):
         return mathutils.Vector((x_intersect, y_coordinate, 0))
     else:
-        return None  
+        return None
 
 def interpolate_height_along_edge(vertex1, vertex2, x_coordinate):
     if vertex2.x == vertex1.x:
@@ -99,17 +99,15 @@ while y_coordinate < ldy:
                     tc += 1
     else:
         print("No active mesh object found or active object is not a mesh.")
-    print("slice done", y_coordinate, ldy, tc)
     full.append(lines)
     lines = []
-    
+
 for obj in bpy.data.objects:
     if obj.name.startswith("Line"):
         obj.select_set(True)
-        
-bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='MEDIAN')
-bpy.ops.object.select_all(action='DESELECT')  
 
-filename = "" # put JSON output file here
+bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='MEDIAN')
+bpy.ops.object.select_all(action='DESELECT')
+        
 str = json.dumps(full)
 with open(filename, 'w') as f: f.write(str)
